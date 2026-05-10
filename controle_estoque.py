@@ -1,69 +1,108 @@
-# História de Usuário: Entrada de Produto no Estoque
-# Um funcionário do setor de almoxarifado precisa registrar a entrada de produtos no estoque,
-# para que o sistema reflita corretamente os itens disponíveis após uma nova entrega ou compra.
-# Critérios de Aceitação são:
-# • O sistema deve permitir selecionar um produto já cadastrado.
-# • Deve ser possível informar a quantidade recebida e a data da entrada.
-# • O estoque do produto deve ser atualizado automaticamente.
-# Além disso, precisará adicionar neste sistema algumas funcionalidades para ajudar na distribuição de materiais para registrar a saída de produtos do estoque mantendo o controle preciso dos
-# itens utilizados ou entregues.
-# Critérios de Aceitação:
-# • O sistema deve permitir selecionar um produto e informar a quantidade retirada.
-# • Deve validar se há quantidade suficiente no estoque antes de confirmar a saída.
-# • O sistema deve registrar a movimentação com data e responsável.
+# Importa datetime para marcação de hora nas movimentações
+from datetime import datetime
 
-# LOGIN
-# Nome sem espaços - Senha igual o nome
+# Variáveis Globais
+estoque = [
+    {"id": 1, "nome": "Papel Sulfite (Resma)", "quantidade": 0},
+    {"id": 2, "nome": "Envelope A4", "quantidade": 0},
+    {"id": 3, "nome": "Caneta Esferográfica (Azul)", "quantidade": 0},
+    {"id": 4, "nome": "Caneta Esferográfica (Preta)", "quantidade": 0},
+    {"id": 5, "nome": "Elástico (Pacote 50un)", "quantidade": 0},
+    {"id": 6, "nome": "Fita Adesiva", "quantidade": 0}
+]
+movimentacoes = []
+responsavel = ""
+
+# Funcionalidades
+def eh_numero(valor):
+    try:
+        numero = int(valor)
+        return True
+    except ValueError:
+        print("Valor inválido. Tente novamente.\n")
+        return False
+
 def login():
     print("-----------------------------")
     print("----------- LOGIN -----------")
     usuario = input("Usuário: ")
-    senha = input("Senha: ")
-    if (usuario == senha):
-        print("Login com sucesso.")
-        return usuario
-    print("Credenciais inválidas.")
-    return ""
+    return usuario
 
-def adicionar_produto(responsavel):
+def registrar_movimentacao(operacao, id, quantidade):
+    movimentacao = {
+        "id": len(movimentacoes),
+        "data_hora": datetime.now(),
+        "operacao": operacao,
+        "responsavel": responsavel,
+        "id_produto": id,
+        "quantidade": quantidade
+    }
+    movimentacoes.append(movimentacao)
+
+def adicionar_produto():
+    consultar_estoque()
     print("-----------------------------")
     print("----- ADICIONAR PRODUTO -----")
-    id = input("Informe o código do produto, caso exista: ")
-    if (id == "")
-    nome = input("Digite o nome do produto: ")
-    quantidade = input("Informe a quantidade a ser adicionada: ") 
-    entrada = {
-        "id": str(id),
-        "nome": nome,
-        "quantidade": quantidade,
-        "responsavel": responsavel
-    }
-    estoque.adicionar(entrada)
-    print("------------------------------\n")
+    teste = False
+    while teste == False:
+        id = input("Informe o código do produto: ")
+        teste = eh_numero(id)
+    id = int(id)
+    teste = False
+    while teste == False:
+        quantidade = input("Informe a quantidade a ser adicionada: ")
+        teste = eh_numero(quantidade)
+    quantidade = int(quantidade)
+    mensagem = "{} unidades de {} adicionadas.\n"
+    for produto in estoque:
+        if produto["id"] == id:
+            produto["quantidade"] += quantidade
+            registrar_movimentacao("entrada", id, quantidade)
+            print(mensagem.format(quantidade, produto["nome"]))
+            return
     
 def remover_produto():
-    ""
+    consultar_estoque()
+    print("-----------------------------")
+    print("------ REMOVER PRODUTO ------")
+    id = int(input("Informe o código do produto: "))
+    quantidade = int(input("Informe a quantidade a ser retirada: "))
+    mensagem = "{} unidades de {} retiradas.\n"
+    for produto in estoque:
+        if produto["id"] == id:
+            if produto["quantidade"] < quantidade:
+                print("Erro: Quantidade de retirada excede estoque.\n")
+                return
+            produto["quantidade"] -= quantidade
+            registrar_movimentacao("saida", id, quantidade)
+            print(mensagem.format(quantidade, produto["nome"]))
+            return
 
 def consultar_estoque():
-    ""
+    mensagem = "ID: {} | Produto: {} | Estoque: {}"
+    
+    for produto in estoque:
+        print(mensagem.format(str(produto["id"]).rjust(2), produto["nome"].ljust(30), produto["quantidade"]))
 
 def consultar_movimentacoes():
-    ""
+    if len(movimentacoes) == 0:
+        print("Sem movimentações registradas.\n")
+        return
+    mensagem = "{} | Usuário {} {} {} unidade(s) de {}."
+    for movimentacao in movimentacoes:
+        operacao = "adicionou" if movimentacao["operacao"] == "entrada" else "removeu"
+        for produto in estoque:
+            if produto["id"] == movimentacao["id_produto"]:
+                nome_produto = produto["nome"]
+                break
+        print(mensagem.format(movimentacao["data_hora"], movimentacao["responsavel"], operacao, movimentacao["quantidade"], nome_produto))
 
-def verificar_id(id):
-    for produto in estoque:
-        if (id == produto["id"]):
-            return True
-    return False
 
-# Variáveis Globais
-estoque = []
-movimentacoes = []
-responsavel = ""
 
-# Início
+# Rotina Principal
 print("Controle de Estoque do Daniel Silvente Pereira")
 
+# Login/Identificação de Responsável
 while responsavel == "":
     responsavel = login()
 
